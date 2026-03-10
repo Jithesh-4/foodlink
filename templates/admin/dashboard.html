@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodLink – Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  :root{--gold:#D4A017;--dark-gold:#A07810;--deep:#1A140A;--bg:#FAF7F0;--muted:#7A6A4F;--green:#2D6A4F;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:#1A140A;}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--deep);padding:32px 24px;display:flex;flex-direction:column;z-index:10;}
+  .logo{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:900;color:var(--gold);}
+  .logo span{color:rgba(255,255,255,0.4);font-size:0.7rem;font-weight:300;display:block;letter-spacing:0.06em;margin-top:2px;}
+  .admin-badge{background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.25);border-radius:10px;padding:10px 14px;margin:12px 0 32px;}
+  .ab-label{font-size:0.65rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;}
+  .ab-name{font-size:0.9rem;color:white;font-weight:500;margin-top:2px;}
+  .ab-role{font-size:0.7rem;color:var(--gold);margin-top:3px;display:flex;align-items:center;gap:5px;}
+  .live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4caf8c;animation:livePulse 1.4s infinite;}
+  @keyframes livePulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  nav a{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;margin-bottom:4px;color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.9rem;transition:all 0.2s;}
+  nav a:hover,nav a.active{background:rgba(212,160,23,0.12);color:white;}
+  nav a.active{color:var(--gold);font-weight:500;}
+  .icon{font-size:1.1rem;width:22px;text-align:center;}
+  .sidebar-bottom{margin-top:auto;}
+  .logout{display:block;text-align:center;padding:10px;color:rgba(255,255,255,0.25);font-size:0.8rem;text-decoration:none;}
+  .main{margin-left:260px;min-height:100vh;}
+  .topbar{background:white;padding:20px 36px;border-bottom:1px solid rgba(212,160,23,0.12);display:flex;align-items:center;gap:16px;}
+  .topbar h2{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;flex:1;}
+  .live-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;font-weight:600;color:var(--green);background:rgba(45,106,79,0.1);border:1px solid rgba(45,106,79,0.2);padding:5px 14px;border-radius:100px;}
+  .content{padding:32px 36px;}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .stat-card{background:white;border-radius:16px;padding:20px;border:1px solid rgba(212,160,23,0.1);animation:fadeUp 0.4s ease both;transition:transform 0.2s;}
+  .stat-card:hover{transform:translateY(-2px);}
+  .sc-icon{font-size:1.3rem;margin-bottom:8px;}
+  .sc-num{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:900;color:var(--gold);}
+  .sc-label{font-size:0.78rem;color:var(--muted);margin-top:4px;}
+  .sc-change{font-size:0.72rem;margin-top:6px;color:#16a34a;}
+
+  /* ── LIVE ACTIVITY FEED ── */
+  .activity-feed{background:white;border-radius:20px;border:1px solid rgba(212,160,23,0.1);margin-bottom:28px;overflow:hidden;}
+  .feed-header{padding:18px 24px;border-bottom:1px solid rgba(212,160,23,0.1);display:flex;align-items:center;justify-content:space-between;}
+  .feed-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;}
+  .feed-list{max-height:220px;overflow-y:auto;}
+  .feed-item{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid rgba(212,160,23,0.06);animation:feedSlide 0.4s ease;}
+  .feed-item:last-child{border-bottom:none;}
+  @keyframes feedSlide{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+  .feed-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+  .feed-icon.fi-food{background:rgba(45,106,79,0.1);}
+  .feed-icon.fi-ngo{background:rgba(212,160,23,0.1);}
+  .feed-text{flex:1;font-size:0.85rem;color:#1A140A;}
+  .feed-text strong{font-weight:600;}
+  .feed-time{font-size:0.75rem;color:var(--muted);}
+
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .section-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;}
+  .pending-count{background:rgba(220,38,38,0.1);color:#dc2626;font-size:0.75rem;font-weight:600;padding:3px 10px;border-radius:100px;}
+  .pending-alert{background:linear-gradient(135deg,rgba(220,38,38,0.08),rgba(220,38,38,0.04));border:1px solid rgba(220,38,38,0.2);border-radius:16px;padding:16px 24px;display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+  .pa-icon{font-size:1.4rem;}
+  .pa-text h4{color:#dc2626;font-size:0.95rem;font-weight:600;}
+  .pa-text p{color:rgba(220,38,38,0.7);font-size:0.82rem;margin-top:2px;}
+  .table-wrap{background:white;border-radius:20px;overflow:hidden;border:1px solid rgba(212,160,23,0.1);margin-bottom:28px;}
+  table{width:100%;border-collapse:collapse;}
+  th{padding:14px 20px;text-align:left;font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);background:#FDFBF5;border-bottom:1px solid rgba(212,160,23,0.1);}
+  td{padding:15px 20px;font-size:0.88rem;color:#1A140A;border-bottom:1px solid rgba(212,160,23,0.06);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#FEFCF5;}
+  @keyframes flashRow{0%{background:rgba(45,106,79,0.1);}100%{background:transparent;}}
+  .new-row{animation:flashRow 3s ease;}
+  .badge{display:inline-block;font-size:0.7rem;font-weight:600;padding:3px 10px;border-radius:100px;text-transform:uppercase;}
+  .badge-pending{background:rgba(212,160,23,0.12);color:var(--dark-gold);}
+  .badge-verified{background:rgba(22,163,74,0.12);color:#16a34a;}
+  .badge-active{background:rgba(45,106,79,0.12);color:var(--green);}
+  .badge-ended{background:rgba(107,91,62,0.1);color:var(--muted);}
+  .badge-free_meal{background:rgba(45,106,79,0.12);color:var(--green);}
+  .badge-discount{background:rgba(212,160,23,0.12);color:var(--dark-gold);}
+  .badge-ration{background:rgba(232,101,26,0.12);color:#e8651a;}
+  .badge-cooked_food{background:rgba(74,158,255,0.12);color:#3b82f6;}
+  .ngo-info{display:flex;flex-direction:column;gap:2px;}
+  .ngo-info strong{font-size:0.9rem;}
+  .ngo-info span{font-size:0.78rem;color:var(--muted);}
+  .action-group{display:flex;gap:8px;}
+  .btn-verify{padding:6px 14px;background:rgba(22,163,74,0.1);color:#16a34a;border:1px solid rgba(22,163,74,0.25);border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;text-decoration:none;transition:background 0.2s;}
+  .btn-verify:hover{background:rgba(22,163,74,0.2);}
+  .btn-reject{padding:6px 14px;background:rgba(220,38,38,0.08);color:#dc2626;border:1px solid rgba(220,38,38,0.2);border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;border:none;}
+  .btn-reject:hover{background:rgba(220,38,38,0.15);}
+  .btn-view{padding:6px 14px;background:#F5F0E8;color:var(--muted);border:none;border-radius:8px;font-size:0.78rem;cursor:pointer;}
+  .empty-row td{text-align:center;padding:40px;color:var(--muted);font-size:0.88rem;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:white;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;transform:translateY(80px);transition:transform 0.3s;z-index:9999;}
+  .toast.show{transform:translateY(0);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">FoodLink <span>ADMIN CONTROL</span></div>
+  <div class="admin-badge">
+    <div class="ab-label">Logged in as</div>
+    <div class="ab-name">Super Admin</div>
+    <div class="ab-role"><div class="live-dot"></div> Monitoring Live</div>
+  </div>
+  <nav>
+    <a href="/admin/dashboard" class="active"><span class="icon">🏠</span> Dashboard</a>
+    <a href="#"><span class="icon">🤝</span> NGO Requests</a>
+    <a href="#"><span class="icon">📋</span> All Listings</a>
+    <a href="#"><span class="icon">👥</span> All Users</a>
+    <a href="#"><span class="icon">🚨</span> Send Alert</a>
+    <a href="#"><span class="icon">📊</span> Analytics</a>
+    <a href="#"><span class="icon">⚙️</span> Settings</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="/logout" class="logout">Logout</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <h2>Admin Dashboard</h2>
+    <span class="live-badge"><span class="live-dot"></span> Live Monitoring</span>
+    <span style="font-size:0.82rem;color:var(--muted);">📅 <span id="todayDate"></span></span>
+  </div>
+
+  <div class="content">
+
+    <!-- Stats — updated live via SSE -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="sc-icon">⏳</div>
+        <div class="sc-num" id="statPending">{{ pending|length if pending else 0 }}</div>
+        <div class="sc-label">Pending Approvals</div>
+        <div class="sc-change" style="color:#dc2626;" id="pendingNote">{{ 'Needs attention' if pending and pending|length > 0 else 'All clear' }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon">✅</div>
+        <div class="sc-num" id="statVerified">{{ verified|length if verified else 0 }}</div>
+        <div class="sc-label">Verified NGOs</div>
+        <div class="sc-change">↑ Active partners</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon">🍽️</div>
+        <div class="sc-num" id="statToday">{{ today_count.count if today_count else 0 }}</div>
+        <div class="sc-label">Listings Today</div>
+        <div class="sc-change" id="statTodayChange">↑ Live now</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-icon">👥</div>
+        <div class="sc-num" id="statUsers">—</div>
+        <div class="sc-label">Total Users</div>
+        <div class="sc-change">↑ Growing</div>
+      </div>
+    </div>
+
+    <!-- ── LIVE ACTIVITY FEED ── updated by SSE without reload -->
+    <div class="activity-feed">
+      <div class="feed-header">
+        <div class="feed-title">🔴 Live Activity</div>
+        <span class="live-badge"><span class="live-dot"></span> Real-time</span>
+      </div>
+      <div class="feed-list" id="feedList">
+        {% if recent_listings %}
+          {% for item in recent_listings[:5] %}
+          <div class="feed-item">
+            <div class="feed-icon fi-food">🍛</div>
+            <div class="feed-text"><strong>{{ item.ngo_name }}</strong> posted "{{ item.title }}"</div>
+            <div class="feed-time">Today</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="feed-item">
+            <div class="feed-icon fi-food">📡</div>
+            <div class="feed-text">Waiting for activity... live events will appear here</div>
+            <div class="feed-time">Now</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Pending NGOs -->
+    {% if pending and pending|length > 0 %}
+    <div class="pending-alert" id="pendingAlert">
+      <div class="pa-icon">🚨</div>
+      <div class="pa-text">
+        <h4>{{ pending|length }} NGO(s) waiting for verification</h4>
+        <p>Review and approve or reject their registration requests below.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="section-header">
+      <div class="section-title">Pending NGO Approvals</div>
+      {% if pending %}<span class="pending-count" id="pendingBadge">{{ pending|length }} pending</span>{% endif %}
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Organization</th><th>Contact</th><th>City</th><th>Registered</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="pendingBody">
+          {% if pending %}
+            {% for ngo in pending %}
+            <tr id="ngo-row-{{ ngo.id }}">
+              <td><div class="ngo-info"><strong>{{ ngo.name }}</strong><span>{{ ngo.address[:40] if ngo.address else '' }}</span></div></td>
+              <td><div class="ngo-info"><span>{{ ngo.email }}</span><span>{{ ngo.phone }}</span></div></td>
+              <td>{{ ngo.city }}</td>
+              <td>{{ ngo.created_at.strftime('%d %b %Y') if ngo.created_at else 'Today' }}</td>
+              <td><span class="badge badge-pending">Pending</span></td>
+              <td>
+                <div class="action-group">
+                  <a href="/admin/verify-ngo/{{ ngo.id }}" class="btn-verify">✓ Verify</a>
+                  <button class="btn-reject" onclick="rejectNgo({{ ngo.id }})">✗ Reject</button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr id="pendingEmptyRow"><td colspan="6" class="empty-row">✅ No pending approvals — you're all caught up!</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Today's Food Listings (live) -->
+    <div class="section-header">
+      <div class="section-title">Today's Food Listings <span style="font-family:'DM Sans';font-size:0.78rem;font-weight:400;color:var(--muted);margin-left:8px;">updates live</span></div>
+      <span class="live-badge"><span class="live-dot"></span> LIVE</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>NGO</th><th>Type</th><th>Timing</th><th>Address</th><th>Status</th></tr></thead>
+        <tbody id="listingsBody">
+          {% if recent_listings %}
+            {% for item in recent_listings %}
+            <tr id="listing-{{ item.id }}">
+              <td><strong>{{ item.title }}</strong></td>
+              <td>{{ item.ngo_name }}</td>
+              <td><span class="badge badge-{{ item.food_type }}">{{ item.food_type.replace('_',' ').title() }}</span></td>
+              <td style="font-size:0.82rem;">{{ item.available_from }} – {{ item.available_to }}</td>
+              <td style="font-size:0.82rem;">{{ item.address[:35] }}</td>
+              <td><span class="badge {{ 'badge-active' if item.is_active else 'badge-ended' }}">{{ 'Active' if item.is_active else 'Ended' }}</span></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr id="listEmptyRow"><td colspan="6" class="empty-row">No food listings today yet. They'll appear here instantly when posted.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Verified NGOs -->
+    <div class="section-header"><div class="section-title">Verified NGO Partners</div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Organization</th><th>Email</th><th>City</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="verifiedBody">
+          {% if verified %}
+            {% for ngo in verified %}
+            <tr>
+              <td><div class="ngo-info"><strong>{{ ngo.name }}</strong></div></td>
+              <td>{{ ngo.email }}</td>
+              <td>{{ ngo.city }}</td>
+              <td><span class="badge badge-verified">✓ Verified</span></td>
+              <td><button class="btn-view">View</button></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5" class="empty-row">No verified NGOs yet.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ REAL-TIME SSE ═══════════════════════════════════════════
+// Admin dashboard connects here → sees ALL events from NGOs
+const evtSource = new EventSource('/stream');
+
+evtSource.addEventListener('connected', () => showToast('🟢 Live monitoring active'));
+
+// ★ When NGO posts food → admin sees it INSTANTLY ★
+evtSource.addEventListener('new_food', (e) => {
+    const d = JSON.parse(e.data);
+    const now = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+
+    // 1. Add to live feed at top
+    addFeedItem('🍛', 'fi-food', `<strong>${d.ngo_name}</strong> posted "${d.title}"`, now);
+
+    // 2. Add to listings table
+    const empty = document.getElementById('listEmptyRow');
+    if (empty) empty.remove();
+    const tbody = document.getElementById('listingsBody');
+    const tr = document.createElement('tr');
+    tr.id = 'listing-' + d.id;
+    tr.className = 'new-row';
+    tr.innerHTML = `
+        <td><strong>${d.title}</strong></td>
+        <td>${d.ngo_name}</td>
+        <td><span class="badge badge-${d.food_type}">${d.food_type.replace('_',' ')}</span></td>
+        <td style="font-size:0.82rem;">${d.from_time} – ${d.to_time}</td>
+        <td style="font-size:0.82rem;">${d.address.substring(0,35)}</td>
+        <td><span class="badge badge-active">Active</span></td>`;
+    tbody.prepend(tr);
+
+    // 3. Increment today's count
+    const stat = document.getElementById('statToday');
+    stat.textContent = parseInt(stat.textContent || 0) + 1;
+
+    showToast(`🍛 New: ${d.title} by ${d.ngo_name}`);
+});
+
+// When NGO is verified → update tables + feed
+evtSource.addEventListener('ngo_verified', (e) => {
+    const d = JSON.parse(e.data);
+    const now = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+
+    // Remove from pending table
+    const row = document.getElementById('ngo-row-' + d.ngo_id);
+    if (row) row.remove();
+
+    // Update pending count
+    const pendStat = document.getElementById('statPending');
+    const newPend = Math.max(0, parseInt(pendStat.textContent || 0) - 1);
+    pendStat.textContent = newPend;
+    if (newPend === 0) document.getElementById('pendingNote').textContent = 'All clear ✅';
+
+    // Update verified count
+    const verStat = document.getElementById('statVerified');
+    verStat.textContent = parseInt(verStat.textContent || 0) + 1;
+
+    // Add to feed
+    addFeedItem('✅', 'fi-ngo', `<strong>${d.ngo_name}</strong> has been verified`, now);
+
+    showToast(`✅ ${d.ngo_name} verified successfully!`);
+});
+
+evtSource.addEventListener('ngo_rejected', (e) => {
+    const d = JSON.parse(e.data);
+    const row = document.getElementById('ngo-row-' + d.ngo_id);
+    if (row) row.remove();
+    const pendStat = document.getElementById('statPending');
+    pendStat.textContent = Math.max(0, parseInt(pendStat.textContent || 0) - 1);
+    showToast('🗑️ NGO registration rejected');
+});
+
+evtSource.addEventListener('listing_toggled', (e) => {
+    const d = JSON.parse(e.data);
+    const row = document.getElementById('listing-' + d.id);
+    if (row) {
+        const badge = row.querySelector('.badge-active, .badge-ended');
+        if (badge) {
+            badge.textContent = d.is_active ? 'Active' : 'Ended';
+            badge.className = 'badge ' + (d.is_active ? 'badge-active' : 'badge-ended');
+        }
+    }
+});
+
+// ── HELPER: Add item to live feed ──
+function addFeedItem(emoji, cls, html, time) {
+    const list = document.getElementById('feedList');
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    div.innerHTML = `
+        <div class="feed-icon ${cls}">${emoji}</div>
+        <div class="feed-text">${html}</div>
+        <div class="feed-time">${time}</div>`;
+    list.prepend(div);
+    // Keep feed at max 8 items
+    while (list.children.length > 8) list.lastChild.remove();
+}
+
+// ── Load user count on open ──
+fetch('/admin/stats').then(r => r.json()).then(d => {
+    document.getElementById('statUsers').textContent = d.users || 0;
+}).catch(() => {});
+
+function rejectNgo(id) {
+    if (confirm('Reject this NGO registration?')) {
+        window.location.href = '/admin/reject-ngo/' + id;
+    }
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+document.getElementById('todayDate').textContent =
+    new Date().toLocaleDateString('en-IN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+</script>
+</body>
+</html>      

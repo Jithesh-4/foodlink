@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodLink – NGO Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#2e7d5e; --primary-light:#4caf8c; --dark:#0f1f18; --darker:#0a1510; --card:#121f18; --card2:#162518; --text:#e8f5ef; --muted:#6b8f7c; --accent:#f4c542; --orange:#e8622a; --blue:#4a9eff; --border:rgba(76,175,140,0.1); }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:var(--darker);color:var(--text);min-height:100vh;display:flex;}
+        .sidebar{width:260px;min-height:100vh;background:var(--dark);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
+        .sidebar-brand{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
+        .logo-mark{width:42px;height:42px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
+        .sidebar-brand h2{font-family:'Playfair Display',serif;font-size:18px;}
+        .sidebar-brand p{font-size:12px;color:var(--muted);margin-top:2px;}
+        .sidebar-nav{padding:20px 12px;flex:1;}
+        .nav-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:0 12px;margin:16px 0 8px;}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;transition:all 0.2s;margin-bottom:2px;text-decoration:none;}
+        .nav-item:hover{background:var(--border);color:var(--text);}
+        .nav-item.active{background:rgba(76,175,140,0.15);color:var(--primary-light);}
+        .nav-item .icon{font-size:18px;width:22px;text-align:center;}
+        .sidebar-bottom{padding:16px 12px;border-top:1px solid var(--border);}
+        .user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--border);}
+        .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+        .user-info{flex:1;min-width:0;}
+        .user-info p{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .live-dot{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--primary-light);font-weight:700;letter-spacing:0.04em;}
+        .live-dot::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--primary-light);animation:livePulse 1.4s infinite;}
+        @keyframes livePulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+        .main{margin-left:260px;flex:1;padding:32px 36px;}
+        .page-header{margin-bottom:32px;display:flex;align-items:flex-start;justify-content:space-between;}
+        .page-header h1{font-family:'Playfair Display',serif;font-size:30px;background:linear-gradient(135deg,var(--text),var(--primary-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .page-header p{color:var(--muted);font-size:14px;margin-top:4px;}
+        .post-food-btn{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border:none;padding:12px 24px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity 0.2s,transform 0.15s;flex-shrink:0;}
+        .post-food-btn:hover{opacity:0.88;transform:translateY(-1px);}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+        .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:transform 0.2s;}
+        .stat-card:hover{transform:translateY(-2px);}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+        .s1::before{background:linear-gradient(90deg,var(--primary),var(--primary-light));}
+        .s2::before{background:linear-gradient(90deg,var(--accent),#ffdb80);}
+        .s3::before{background:linear-gradient(90deg,var(--orange),#ff8c5a);}
+        .s4::before{background:linear-gradient(90deg,var(--blue),#80c4ff);}
+        .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px;}
+        .s1 .stat-icon{background:rgba(76,175,140,0.15);}
+        .s2 .stat-icon{background:rgba(244,197,66,0.15);}
+        .s3 .stat-icon{background:rgba(232,98,42,0.15);}
+        .s4 .stat-icon{background:rgba(74,158,255,0.15);}
+        .stat-value{font-size:28px;font-weight:700;}
+        .stat-label{font-size:12px;color:var(--muted);margin-top:2px;}
+        .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;}
+        .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+        .panel-title{font-size:16px;font-weight:600;}
+        .panel-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+        table{width:100%;border-collapse:collapse;}
+        th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+        td{padding:14px 16px;font-size:13px;border-bottom:1px solid rgba(76,175,140,0.05);}
+        tr:last-child td{border-bottom:none;}
+        tr:hover td{background:rgba(76,175,140,0.03);}
+        .badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;text-transform:uppercase;}
+        .badge-active{background:rgba(76,175,140,0.15);color:var(--primary-light);}
+        .badge-ended{background:rgba(255,255,255,0.06);color:var(--muted);}
+        .badge-free_meal{background:rgba(76,175,140,0.12);color:var(--primary-light);}
+        .badge-discount{background:rgba(244,197,66,0.12);color:var(--accent);}
+        .badge-ration{background:rgba(232,98,42,0.12);color:var(--orange);}
+        .badge-cooked_food{background:rgba(74,158,255,0.12);color:var(--blue);}
+        .action-btn{padding:5px 12px;border-radius:7px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:background 0.2s;}
+        .btn-end{background:rgba(232,98,42,0.12);color:var(--orange);}
+        .btn-resume{background:rgba(76,175,140,0.12);color:var(--primary-light);}
+        @keyframes flashNew{0%{background:rgba(76,175,140,0.25);}100%{background:transparent;}}
+        .new-row{animation:flashNew 2.5s ease;}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;}
+        .modal-overlay.open{display:flex;animation:fadeIn 0.2s;}
+        .modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;width:500px;max-height:90vh;overflow-y:auto;animation:slideUp 0.25s ease;}
+        @keyframes slideUp{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .modal-icon{width:56px;height:56px;border-radius:16px;background:rgba(76,175,140,0.15);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:18px;}
+        .modal h3{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;}
+        .modal-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+        .form-group{margin-bottom:14px;}
+        .form-group label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;}
+        .form-group input,.form-group select,.form-group textarea{width:100%;background:var(--darker);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
+        .form-group input:focus,.form-group select:focus{border-color:var(--primary-light);}
+        .form-group textarea{resize:vertical;min-height:70px;}
+        .form-group select option{background:var(--dark);}
+        .modal-actions{display:flex;gap:10px;margin-top:20px;}
+        .btn-ghost{flex:1;background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--muted);padding:12px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;}
+        .btn-submit{flex:2;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border:none;padding:12px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;}
+        .toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:white;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;transform:translateY(80px);transition:transform 0.3s;z-index:9999;}
+        .toast.show{transform:translateY(0);}
+        ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+    </style>
+</head>
+<body>
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="logo-mark">🌿</div>
+        <h2>FoodLink</h2>
+        <p>NGO Partner Portal</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-label">Main</div>
+        <a href="/ngo/dashboard" class="nav-item active"><span class="icon">📊</span> Dashboard</a>
+        <a href="#" class="nav-item" onclick="openPostModal()"><span class="icon">➕</span> Post Food</a>
+        <div class="nav-label">Account</div>
+        <a href="/logout" class="nav-item"><span class="icon">🚪</span> Logout</a>
+    </nav>
+    <div class="sidebar-bottom">
+        <div class="user-card">
+            <div class="user-avatar">{{ session.get('ngo_name','N')[0].upper() }}</div>
+            <div class="user-info">
+                <p>{{ session.get('ngo_name','NGO') }}</p>
+                <span class="live-dot">LIVE</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <h1>NGO Dashboard 🌿</h1>
+            <p id="dateDisplay"></p>
+        </div>
+        <button class="post-food-btn" onclick="openPostModal()">➕ Post Food Now</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card s1"><div class="stat-icon">🍱</div><div class="stat-value" id="stat-active">{{ listings|selectattr('is_active')|list|length if listings else 0 }}</div><div class="stat-label">Active Today</div></div>
+        <div class="stat-card s2"><div class="stat-icon">📋</div><div class="stat-value" id="stat-total">{{ listings|length if listings else 0 }}</div><div class="stat-label">Total Listings</div></div>
+        <div class="stat-card s3"><div class="stat-icon">👁️</div><div class="stat-value">342</div><div class="stat-label">Views This Week</div></div>
+        <div class="stat-card s4"><div class="stat-icon">🏆</div><div class="stat-value">1.2k</div><div class="stat-label">Est. Meals Served</div></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Your Food Listings</div>
+                <div class="panel-sub">New posts appear here instantly &nbsp;•&nbsp; <span class="live-dot">LIVE</span></div>
+            </div>
+        </div>
+        <table>
+            <thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Timing</th><th>Qty</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="listingsBody">
+                {% if listings %}
+                    {% for item in listings %}
+                    <tr id="row-{{ item.id }}">
+                        <td><strong>{{ item.title }}</strong><br><span style="font-size:11px;color:var(--muted);">{{ item.address[:40] }}</span></td>
+                        <td><span class="badge badge-{{ item.food_type }}">{{ item.food_type.replace('_',' ').title() }}</span></td>
+                        <td>{{ item.date }}</td>
+                        <td style="font-size:12px;">{{ item.available_from }} – {{ item.available_to }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td><span class="badge {{ 'badge-active' if item.is_active else 'badge-ended' }}">{{ 'Active' if item.is_active else 'Ended' }}</span></td>
+                        <td><a href="/ngo/toggle/{{ item.id }}"><button class="action-btn {{ 'btn-end' if item.is_active else 'btn-resume' }}">{{ 'End' if item.is_active else 'Resume' }}</button></a></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr id="emptyRow"><td colspan="7" style="text-align:center;padding:48px;color:var(--muted);"><div style="font-size:2.5rem;margin-bottom:12px;">🍽️</div>No listings yet. Click "Post Food Now" to start.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- POST MODAL -->
+<div class="modal-overlay" id="postModal" onclick="closeModalOutside(event)">
+    <div class="modal">
+        <div class="modal-icon">🍽️</div>
+        <h3>Post Food Listing</h3>
+        <p class="modal-desc">This will appear <strong>instantly</strong> on Seeker and Admin dashboards — no refresh needed.</p>
+        <form method="POST" action="/ngo/post-food">
+            <div class="form-group"><label>Title</label><input type="text" name="title" placeholder="e.g. Free lunch – rice & dal" required></div>
+            <div class="form-group"><label>Details</label><textarea name="description" placeholder="Notes about eligibility..."></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>Food Type</label><select name="food_type"><option value="free_meal">Free Meal</option><option value="cooked_food">Cooked Food</option><option value="ration">Ration</option><option value="discount">Discounted</option></select></div>
+                <div class="form-group"><label>Quantity</label><input type="text" name="quantity" placeholder="e.g. 150 meals"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>From</label><input type="time" name="available_from" required></div>
+                <div class="form-group"><label>Until</label><input type="time" name="available_to" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Date</label><input type="date" name="date" id="dateInput" required></div>
+                <div class="form-group"><label>Address</label><input type="text" name="address" placeholder="Street, Area, City" required></div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-submit">🚀 Post & Notify Everyone</button>
+                <button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ REAL-TIME: connect to SSE stream ══
+const evtSource = new EventSource('/stream');
+
+evtSource.addEventListener('connected', () => showToast('🟢 Live feed connected'));
+
+evtSource.addEventListener('new_food', (e) => {
+    const d = JSON.parse(e.data);
+    showToast(`✅ "${d.title}" is LIVE on all dashboards!`);
+    // Remove empty row if present
+    const empty = document.getElementById('emptyRow');
+    if (empty) empty.remove();
+    // Add new row at top of table
+    const body = document.getElementById('listingsBody');
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + d.id;
+    tr.className = 'new-row';
+    tr.innerHTML = `
+        <td><strong>${d.title}</strong><br><span style="font-size:11px;color:var(--muted);">${d.address}</span></td>
+        <td><span class="badge badge-${d.food_type}">${d.food_type.replace('_',' ')}</span></td>
+        <td>${d.date}</td>
+        <td style="font-size:12px;">${d.from_time} – ${d.to_time}</td>
+        <td>${d.quantity}</td>
+        <td><span class="badge badge-active">Active</span></td>
+        <td><a href="/ngo/toggle/${d.id}"><button class="action-btn btn-end">End</button></a></td>`;
+    body.prepend(tr);
+    // Update stats
+    const stat = document.getElementById('stat-active');
+    stat.textContent = parseInt(stat.textContent || 0) + 1;
+    const total = document.getElementById('stat-total');
+    total.textContent = parseInt(total.textContent || 0) + 1;
+});
+
+evtSource.addEventListener('ngo_verified', (e) => {
+    const d = JSON.parse(e.data);
+    showToast('🎉 Your NGO has been verified by admin!');
+});
+
+function openPostModal() { document.getElementById('postModal').classList.add('open'); }
+function closeModal() { document.getElementById('postModal').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target.id === 'postModal') closeModal(); }
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('dateDisplay').textContent =
+        new Date().toLocaleDateString('en-IN', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('dateInput').valueAsDate = new Date();
+});
+</script>
+</body>
+</html>

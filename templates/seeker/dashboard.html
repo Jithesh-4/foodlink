@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodLink – Find Food Near You</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  :root{--saffron:#E8651A;--deep:#1A1208;--warm:#F5EDD6;--muted:#6B5B3E;--green:#2D6A4F;--gold:#D4A017;}
+  body{font-family:'DM Sans',sans-serif;background:var(--warm);color:var(--deep);}
+
+  /* ── SIDEBAR ── */
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--deep);padding:32px 24px;display:flex;flex-direction:column;z-index:10;}
+  .logo{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:900;color:var(--saffron);margin-bottom:8px;}
+  .logo span{color:white;}
+  .user-badge{background:rgba(232,101,26,0.15);border:1px solid rgba(232,101,26,0.25);border-radius:10px;padding:10px 14px;margin-bottom:32px;margin-top:4px;}
+  .ub-label{font-size:0.68rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+  .ub-phone{font-size:0.9rem;color:white;font-weight:500;margin-top:2px;}
+  nav a{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;margin-bottom:4px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.9rem;transition:all 0.2s;}
+  nav a:hover,nav a.active{background:rgba(232,101,26,0.15);color:white;}
+  nav a.active{color:var(--saffron);font-weight:500;}
+  .icon{font-size:1.1rem;width:22px;text-align:center;}
+  .sidebar-bottom{margin-top:auto;}
+  .logout{display:block;text-align:center;padding:10px;color:rgba(255,255,255,0.3);font-size:0.8rem;text-decoration:none;transition:color 0.2s;}
+  .logout:hover{color:white;}
+
+  /* ── MAIN ── */
+  .main{margin-left:260px;min-height:100vh;}
+  .topbar{background:white;padding:20px 36px;border-bottom:1px solid rgba(107,91,62,0.12);display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:5;}
+  .topbar h2{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;color:var(--deep);flex:1;}
+  .search-wrap{display:flex;align-items:center;gap:10px;background:var(--warm);border:2px solid rgba(107,91,62,0.2);border-radius:100px;padding:8px 8px 8px 20px;flex:1;max-width:480px;transition:border-color 0.2s;}
+  .search-wrap:focus-within{border-color:var(--saffron);}
+  .search-wrap input{border:none;background:transparent;outline:none;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--deep);flex:1;}
+  .voice-btn{width:40px;height:40px;border-radius:50%;background:var(--saffron);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:transform 0.2s;flex-shrink:0;}
+  .voice-btn.listening{background:#dc2626;animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0.4);}50%{box-shadow:0 0 0 10px rgba(220,38,38,0);}}
+  .voice-status{display:none;align-items:center;gap:8px;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:8px 14px;font-size:0.82rem;color:#dc2626;margin:8px 36px 0;}
+  .voice-status.show{display:flex;}
+  .voice-dot{width:8px;height:8px;border-radius:50%;background:#dc2626;animation:blink 0.8s infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+  .content{padding:32px 36px;}
+
+  /* ── LIVE BANNER ── */
+  .live-alert{background:linear-gradient(135deg,rgba(45,106,79,0.12),rgba(45,106,79,0.06));border:1px solid rgba(45,106,79,0.3);border-radius:14px;padding:14px 20px;display:none;align-items:center;gap:12px;margin-bottom:20px;animation:slideIn 0.4s ease;}
+  .live-alert.show{display:flex;}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+  .live-dot-big{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;animation:livePulse 1.4s infinite;}
+  @keyframes livePulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+  /* ── LANGUAGE BAR ── */
+  .lang-bar{display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+  .lang-bar span{font-size:0.78rem;color:var(--muted);font-weight:500;}
+  .lang-pill{padding:5px 14px;border-radius:100px;font-size:0.78rem;border:1px solid rgba(107,91,62,0.2);background:white;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+  .lang-pill.active,.lang-pill:hover{background:var(--saffron);color:white;border-color:var(--saffron);}
+
+  /* ── STATS ── */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .stat-card{background:white;border-radius:16px;padding:20px;border:1px solid rgba(107,91,62,0.1);animation:fadeUp 0.4s ease both;}
+  .sc-icon{font-size:1.4rem;margin-bottom:8px;}
+  .sc-num{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:900;color:var(--saffron);}
+  .sc-label{font-size:0.78rem;color:var(--muted);margin-top:4px;}
+
+  .section-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--deep);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+  .live-badge{display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:600;color:var(--green);background:rgba(45,106,79,0.1);border:1px solid rgba(45,106,79,0.2);padding:3px 10px;border-radius:100px;}
+  .live-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:livePulse 1.4s infinite;}
+
+  /* ── FOOD CARDS ── */
+  .food-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+  @keyframes flashNew{0%{border-color:var(--green);box-shadow:0 0 0 4px rgba(45,106,79,0.15);}100%{border-color:rgba(107,91,62,0.1);box-shadow:none;}}
+  .food-card{background:white;border-radius:20px;padding:24px;border:1px solid rgba(107,91,62,0.1);transition:transform 0.2s,box-shadow 0.2s;}
+  .food-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,18,8,0.1);}
+  .food-card.new-card{animation:flashNew 3s ease;}
+  .food-card-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;}
+  .food-type-icon{width:48px;height:48px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+  .type-free_meal{background:rgba(45,106,79,0.1);}
+  .type-discount{background:rgba(212,160,23,0.1);}
+  .type-ration{background:rgba(232,101,26,0.1);}
+  .type-cooked_food{background:rgba(74,158,255,0.1);}
+  .food-card-info h3{font-size:1rem;font-weight:600;color:var(--deep);margin-bottom:4px;}
+  .food-card-info .ngo-name{font-size:0.82rem;color:var(--muted);}
+  .food-badge{display:inline-block;font-size:0.7rem;font-weight:600;padding:3px 10px;border-radius:100px;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;}
+  .badge-free_meal{background:rgba(45,106,79,0.12);color:var(--green);}
+  .badge-discount{background:rgba(212,160,23,0.12);color:var(--gold);}
+  .badge-ration{background:rgba(232,101,26,0.12);color:var(--saffron);}
+  .badge-cooked_food{background:rgba(74,158,255,0.12);color:#3b82f6;}
+  .food-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+  .food-meta-item{display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--muted);}
+
+  /* ── DISTANCE BADGE ── */
+  .distance-badge{display:inline-flex;align-items:center;gap:5px;font-size:0.75rem;font-weight:600;color:var(--green);background:rgba(45,106,79,0.08);border:1px solid rgba(45,106,79,0.15);padding:3px 10px;border-radius:100px;margin-bottom:10px;}
+  .distance-badge.loading{color:var(--muted);background:rgba(107,91,62,0.06);border-color:rgba(107,91,62,0.15);animation:shimmer 1.2s infinite;}
+  @keyframes shimmer{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+  /* ── DIRECTION BUTTONS ── */
+  .food-card-actions{display:flex;gap:10px;}
+  .btn-directions{flex:1;padding:10px;background:var(--saffron);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;transition:opacity 0.2s,transform 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .btn-directions:hover{opacity:0.85;transform:translateY(-1px);}
+  .btn-save{width:40px;height:40px;background:rgba(107,91,62,0.08);border:1px solid rgba(107,91,62,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:background 0.2s;}
+  .btn-save:hover{background:rgba(107,91,62,0.15);}
+
+  /* ── DIRECTIONS MODAL ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;animation:fadeIn 0.2s ease;}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .dir-modal{background:white;border-radius:24px;width:100%;max-width:560px;overflow:hidden;animation:slideUp 0.25s ease;box-shadow:0 24px 80px rgba(26,18,8,0.2);}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .dir-modal-head{padding:24px 28px 20px;display:flex;align-items:flex-start;gap:16px;border-bottom:1px solid rgba(107,91,62,0.1);}
+  .dir-modal-icon{width:52px;height:52px;border-radius:14px;background:rgba(232,101,26,0.1);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+  .dir-modal-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--deep);margin-bottom:4px;}
+  .dir-modal-ngo{font-size:0.82rem;color:var(--muted);}
+  .dir-modal-close{margin-left:auto;width:32px;height:32px;border-radius:8px;border:none;background:rgba(107,91,62,0.08);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+  /* Distance info panel */
+  .dist-panel{padding:20px 28px;display:flex;gap:16px;background:rgba(232,101,26,0.04);border-bottom:1px solid rgba(107,91,62,0.08);}
+  .dist-item{flex:1;text-align:center;}
+  .dist-num{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:900;color:var(--saffron);}
+  .dist-label{font-size:0.72rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;}
+  .dist-divider{width:1px;background:rgba(107,91,62,0.15);}
+
+  /* Map embed area */
+  .map-embed{width:100%;height:260px;background:#eee;position:relative;overflow:hidden;}
+  .map-embed iframe{width:100%;height:100%;border:none;}
+  .map-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--warm);color:var(--muted);font-size:0.88rem;}
+  .map-spinner{width:32px;height:32px;border:3px solid rgba(232,101,26,0.2);border-top-color:var(--saffron);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Action buttons */
+  .dir-modal-actions{padding:20px 28px;display:flex;gap:12px;}
+  .btn-gmaps{flex:1;padding:13px;background:var(--saffron);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.2s,transform 0.15s;}
+  .btn-gmaps:hover{opacity:0.88;transform:translateY(-1px);}
+  .btn-gmaps-secondary{flex:1;padding:13px;background:rgba(107,91,62,0.08);color:var(--deep);border:1px solid rgba(107,91,62,0.2);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;}
+  .btn-gmaps-secondary:hover{background:rgba(107,91,62,0.14);}
+
+  /* ── LOCATION PERMISSION BANNER ── */
+  .loc-banner{background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.25);border-radius:12px;padding:12px 18px;display:none;align-items:center;gap:12px;margin-bottom:20px;font-size:0.85rem;color:var(--muted);}
+  .loc-banner.show{display:flex;}
+  .loc-btn{padding:6px 14px;background:var(--gold);color:white;border:none;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;flex-shrink:0;}
+
+  /* ── TOAST ── */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:white;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;transform:translateY(80px);transition:transform 0.3s;z-index:9999;}
+  .toast.show{transform:translateY(0);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.food-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">Food<span>Link</span></div>
+  <div class="user-badge">
+    <div class="ub-label">Logged in as</div>
+    <div class="ub-phone">📱 {{ session.get('seeker_phone','9876543210') }}</div>
+  </div>
+  <nav>
+    <a href="/seeker/dashboard" class="active"><span class="icon">🍽️</span> <span data-t="nav_food">Find Food</span></a>
+    <a href="#"><span class="icon">📍</span> <span data-t="nav_map">Nearby Map</span></a>
+    <a href="#"><span class="icon">🔔</span> <span data-t="nav_alerts">Alerts</span></a>
+    <a href="#"><span class="icon">⭐</span> <span data-t="nav_saved">Saved Places</span></a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="/logout" class="logout" data-t="nav_logout">Logout</a>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+  <div class="topbar">
+    <h2 data-t="page_title">Find Food</h2>
+    <div class="search-wrap">
+      <input type="text" id="searchInput" data-t-placeholder="search_placeholder">
+      <button class="voice-btn" id="voiceBtn" onclick="startVoice()" title="Speak to search">🎤</button>
+    </div>
+  </div>
+
+  <div id="voiceStatus" class="voice-status">
+    <div class="voice-dot"></div>
+    <span id="voiceStatusText" data-t="listening">Listening... speak now</span>
+  </div>
+
+  <div class="content">
+
+    <!-- Location permission nudge -->
+    <div class="loc-banner" id="locBanner">
+      <span>📍</span>
+      <span data-t="loc_needed">Allow location to see distance from you to each food centre.</span>
+      <button class="loc-btn" onclick="getLocation()" data-t="allow_location">Allow Location</button>
+    </div>
+
+    <!-- Live food alert -->
+    <div class="live-alert" id="liveAlert">
+      <div class="live-dot-big"></div>
+      <div>
+        <strong id="liveAlertTitle"></strong>
+        <span id="liveAlertDesc" style="font-size:0.82rem;color:var(--muted);margin-left:8px;"></span>
+      </div>
+    </div>
+
+    <!-- Language bar -->
+    <div class="lang-bar">
+      <span data-t="lang_label">Language:</span>
+      <button class="lang-pill active" onclick="setLang('en',this)">English</button>
+      <button class="lang-pill" onclick="setLang('ta',this)">தமிழ்</button>
+      <button class="lang-pill" onclick="setLang('hi',this)">हिंदी</button>
+      <button class="lang-pill" onclick="setLang('te',this)">తెలుగు</button>
+      <button class="lang-pill" onclick="setLang('kn',this)">ಕನ್ನಡ</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="sc-icon">🍽️</div><div class="sc-num" id="statCount">{{ listings|length if listings else 0 }}</div><div class="sc-label" data-t="stat_sources">Food sources today</div></div>
+      <div class="stat-card"><div class="sc-icon">📍</div><div class="sc-num" id="statDist">—</div><div class="sc-label" data-t="stat_nearest">Nearest center</div></div>
+      <div class="stat-card"><div class="sc-icon">🕐</div><div class="sc-num" id="statOpen">{{ listings|length if listings else 0 }}</div><div class="sc-label" data-t="stat_open">Open right now</div></div>
+      <div class="stat-card"><div class="sc-icon">🆓</div><div class="sc-num">{{ listings|selectattr('food_type','equalto','free_meal')|list|length if listings else 0 }}</div><div class="sc-label" data-t="stat_free">Free meals</div></div>
+    </div>
+
+    <!-- Section title -->
+    <div class="section-title">
+      <span data-t="nearby_title">Nearby Food Sources</span>
+      <span class="live-badge">LIVE</span>
+    </div>
+
+    <!-- Food cards grid -->
+    <div class="food-grid" id="foodGrid">
+      {% if listings %}
+        {% for item in listings %}
+        <div class="food-card" id="card-{{ item.id }}"
+             data-address="{{ item.address }}"
+             data-title="{{ item.title }}"
+             data-ngo="{{ item.ngo_name }}"
+             data-type="{{ item.food_type }}">
+          <div class="food-card-top">
+            <div class="food-type-icon type-{{ item.food_type }}">
+              {% if item.food_type=='free_meal' %}🍛
+              {% elif item.food_type=='discount' %}🏪
+              {% elif item.food_type=='ration' %}🌾
+              {% else %}🥘{% endif %}
+            </div>
+            <div class="food-card-info">
+              <h3>{{ item.title }}</h3>
+              <div class="ngo-name">{{ item.ngo_name }}</div>
+            </div>
+          </div>
+          <span class="food-badge badge-{{ item.food_type }}">{{ item.food_type.replace('_',' ').title() }}</span>
+
+          <!-- Distance badge — filled by JS after geolocation -->
+          <div class="distance-badge loading" id="dist-{{ item.id }}">📍 <span data-t="calculating">Calculating distance...</span></div>
+
+          <div class="food-meta">
+            <div class="food-meta-item">🕐 {{ item.available_from }} – {{ item.available_to }}</div>
+            <div class="food-meta-item">📍 {{ item.address[:30] }}</div>
+            <div class="food-meta-item">🍱 {{ item.quantity }}</div>
+            <div class="food-meta-item">📅 <span data-t="today">Today</span></div>
+          </div>
+          <div class="food-card-actions">
+            <button class="btn-directions" onclick="openDirections('{{ item.id }}','{{ item.address }}','{{ item.title }}','{{ item.ngo_name }}','{{ item.food_type }}')">
+              📍 <span data-t="get_directions">Get Directions</span>
+            </button>
+            <button class="btn-save" title="Save">🔖</button>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div id="emptyCard" style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);">
+          <div style="font-size:3rem;margin-bottom:12px;">🍽️</div>
+          <p data-t="no_listings">No food listings yet today. Check back soon!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+<!-- ════════════════════════════════════════════════════════════
+     DIRECTIONS MODAL
+     Shows distance + ETA + embedded map + Google Maps button
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="dirModal" onclick="closeDirModalOutside(event)">
+  <div class="dir-modal">
+
+    <!-- Header -->
+    <div class="dir-modal-head">
+      <div class="dir-modal-icon" id="dirModalIcon">🍛</div>
+      <div>
+        <div class="dir-modal-title" id="dirModalTitle">Food Center</div>
+        <div class="dir-modal-ngo" id="dirModalNgo"></div>
+        <div class="dir-modal-ngo" id="dirModalAddr" style="margin-top:4px;font-size:0.78rem;"></div>
+      </div>
+      <button class="dir-modal-close" onclick="closeDirections()">✕</button>
+    </div>
+
+    <!-- Distance + ETA panel -->
+    <div class="dist-panel">
+      <div class="dist-item">
+        <div class="dist-num" id="modalDist">—</div>
+        <div class="dist-label" data-t="distance">Distance</div>
+      </div>
+      <div class="dist-divider"></div>
+      <div class="dist-item">
+        <div class="dist-num" id="modalEta">—</div>
+        <div class="dist-label" data-t="walk_time">Walk time</div>
+      </div>
+      <div class="dist-divider"></div>
+      <div class="dist-item">
+        <div class="dist-num" id="modalDrive">—</div>
+        <div class="dist-label" data-t="drive_time">Drive time</div>
+      </div>
+    </div>
+
+    <!-- Embedded map -->
+    <div class="map-embed" id="mapEmbedWrap">
+      <div class="map-loading" id="mapLoading">
+        <div class="map-spinner"></div>
+        <span data-t="loading_map">Loading map...</span>
+      </div>
+      <iframe id="mapFrame" src="" style="display:none;" allowfullscreen loading="lazy"></iframe>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="dir-modal-actions">
+      <button class="btn-gmaps" id="btnOpenGmaps" onclick="openGoogleMaps()">
+        🗺️ <span data-t="open_gmaps">Open in Google Maps</span>
+      </button>
+      <button class="btn-gmaps-secondary" onclick="openGoogleMapsWalk()">
+        🚶 <span data-t="walking_route">Walking Route</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ALL JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
+<script>
+
+// ══════════════════════════════════════════════════════════════
+//  TRANSLATION SYSTEM
+//  All text in every language stored here.
+//  setLang() swaps every data-t element at once.
+// ══════════════════════════════════════════════════════════════
+const TRANSLATIONS = {
+  en: {
+    page_title: 'Find Food',
+    nav_food: 'Find Food',
+    nav_map: 'Nearby Map',
+    nav_alerts: 'Alerts',
+    nav_saved: 'Saved Places',
+    nav_logout: 'Logout',
+    search_placeholder: 'Search food, NGO name, or area...',
+    listening: 'Listening... speak now',
+    lang_label: 'Language:',
+    loc_needed: 'Allow location to see distance from you to each food centre.',
+    allow_location: 'Allow Location',
+    stat_sources: 'Food sources today',
+    stat_nearest: 'Nearest center',
+    stat_open: 'Open right now',
+    stat_free: 'Free meals',
+    nearby_title: 'Nearby Food Sources',
+    calculating: 'Calculating distance...',
+    today: 'Today',
+    get_directions: 'Get Directions',
+    no_listings: 'No food listings yet today. Check back soon!',
+    distance: 'Distance',
+    walk_time: 'Walk time',
+    drive_time: 'Drive time',
+    loading_map: 'Loading map...',
+    open_gmaps: 'Open in Google Maps',
+    walking_route: 'Walking Route',
+    free_meal: 'Free Meal',
+    discount: 'Discount',
+    ration: 'Ration',
+    cooked_food: 'Cooked Food',
+    new_food_toast: 'New food posted',
+    live_connected: 'Live feed connected',
+  },
+  ta: {
+    page_title: 'உணவு தேடு',
+    nav_food: 'உணவு தேடு',
+    nav_map: 'அருகிலுள்ள வரைபடம்',
+    nav_alerts: 'அறிவிப்புகள்',
+    nav_saved: 'சேமித்த இடங்கள்',
+    nav_logout: 'வெளியேறு',
+    search_placeholder: 'உணவு அல்லது இடத்தைத் தேடுங்கள்...',
+    listening: 'கேட்கிறேன்... பேசுங்கள்',
+    lang_label: 'மொழி:',
+    loc_needed: 'தூரத்தை அறிய உங்கள் இருப்பிடத்தை அனுமதிக்கவும்.',
+    allow_location: 'இடத்தை அனுமதி',
+    stat_sources: 'இன்று உணவு மையங்கள்',
+    stat_nearest: 'நெருங்கிய மையம்',
+    stat_open: 'இப்போது திறந்திருக்கிறது',
+    stat_free: 'இலவச உணவு',
+    nearby_title: 'அருகிலுள்ள உணவு மையங்கள்',
+    calculating: 'தூரம் கணக்கிடுகிறேன்...',
+    today: 'இன்று',
+    get_directions: 'வழி காட்டு',
+    no_listings: 'இன்று உணவு பட்டியல் இல்லை. பின்னர் சரிபாருங்கள்!',
+    distance: 'தூரம்',
+    walk_time: 'நடக்கும் நேரம்',
+    drive_time: 'வாகன நேரம்',
+    loading_map: 'வரைபடம் ஏற்றுகிறது...',
+    open_gmaps: 'Google Maps-ல் திற',
+    walking_route: 'நடை பாதை',
+    free_meal: 'இலவச உணவு',
+    discount: 'தள்ளுபடி',
+    ration: 'ரேஷன்',
+    cooked_food: 'சமைத்த உணவு',
+    new_food_toast: 'புதிய உணவு பதிவிடப்பட்டது',
+    live_connected: 'நேரலை இணைக்கப்பட்டது',
+  },
+  hi: {
+    page_title: 'खाना खोजें',
+    nav_food: 'खाना खोजें',
+    nav_map: 'नज़दीकी नक्शा',
+    nav_alerts: 'सूचनाएं',
+    nav_saved: 'सहेजे गए स्थान',
+    nav_logout: 'लॉग आउट',
+    search_placeholder: 'खाना, NGO या क्षेत्र खोजें...',
+    listening: 'सुन रहा हूं... बोलिए',
+    lang_label: 'भाषा:',
+    loc_needed: 'दूरी देखने के लिए अपना स्थान अनुमति दें।',
+    allow_location: 'स्थान अनुमति दें',
+    stat_sources: 'आज के खाद्य स्रोत',
+    stat_nearest: 'निकटतम केंद्र',
+    stat_open: 'अभी खुला है',
+    stat_free: 'मुफ्त भोजन',
+    nearby_title: 'नज़दीकी खाद्य स्रोत',
+    calculating: 'दूरी गणना हो रही है...',
+    today: 'आज',
+    get_directions: 'दिशा पाएं',
+    no_listings: 'आज कोई खाद्य सूची नहीं। बाद में जाँचें!',
+    distance: 'दूरी',
+    walk_time: 'पैदल समय',
+    drive_time: 'गाड़ी समय',
+    loading_map: 'नक्शा लोड हो रहा है...',
+    open_gmaps: 'Google Maps में खोलें',
+    walking_route: 'पैदल मार्ग',
+    free_meal: 'मुफ्त भोजन',
+    discount: 'छूट',
+    ration: 'राशन',
+    cooked_food: 'पका हुआ खाना',
+    new_food_toast: 'नया खाना पोस्ट किया गया',
+    live_connected: 'लाइव फ़ीड जुड़ गई',
+  },
+  te: {
+    page_title: 'ఆహారం వెతకండి',
+    nav_food: 'ఆహారం వెతకండి',
+    nav_map: 'సమీప మ్యాప్',
+    nav_alerts: 'హెచ్చరికలు',
+    nav_saved: 'సేవ్ చేసిన స్థలాలు',
+    nav_logout: 'లాగ్ అవుట్',
+    search_placeholder: 'ఆహారం లేదా ప్రాంతం వెతకండి...',
+    listening: 'వింటున్నాను... మాట్లాడండి',
+    lang_label: 'భాష:',
+    loc_needed: 'దూరం చూడటానికి మీ స్థానాన్ని అనుమతించండి.',
+    allow_location: 'స్థానం అనుమతించు',
+    stat_sources: 'నేడు ఆహార వనరులు',
+    stat_nearest: 'సమీప కేంద్రం',
+    stat_open: 'ఇప్పుడు తెరిచి ఉంది',
+    stat_free: 'ఉచిత భోజనాలు',
+    nearby_title: 'సమీప ఆహార కేంద్రాలు',
+    calculating: 'దూరం లెక్కిస్తున్నాం...',
+    today: 'నేడు',
+    get_directions: 'దిశలు పొందండి',
+    no_listings: 'నేడు ఆహార జాబితాలు లేవు. తర్వాత చూడండి!',
+    distance: 'దూరం',
+    walk_time: 'నడక సమయం',
+    drive_time: 'డ్రైవ్ సమయం',
+    loading_map: 'మ్యాప్ లోడ్ అవుతోంది...',
+    open_gmaps: 'Google Maps లో తెరవండి',
+    walking_route: 'నడక మార్గం',
+    free_meal: 'ఉచిత భోజనం',
+    discount: 'తగ్గింపు',
+    ration: 'రేషన్',
+    cooked_food: 'వండిన ఆహారం',
+    new_food_toast: 'కొత్త ఆహారం పోస్ట్ చేయబడింది',
+    live_connected: 'లైవ్ ఫీడ్ కనెక్ట్ అయింది',
+  },
+  kn: {
+    page_title: 'ಆಹಾರ ಹುಡುಕಿ',
+    nav_food: 'ಆಹಾರ ಹುಡುಕಿ',
+    nav_map: 'ಸಮೀಪದ ನಕ್ಷೆ',
+    nav_alerts: 'ಎಚ್ಚರಿಕೆಗಳು',
+    nav_saved: 'ಉಳಿಸಿದ ಸ್ಥಳಗಳು',
+    nav_logout: 'ಲಾಗ್ ಔಟ್',
+    search_placeholder: 'ಆಹಾರ ಅಥವಾ ಪ್ರದೇಶ ಹುಡುಕಿ...',
+    listening: 'ಕೇಳುತ್ತಿದ್ದೇನೆ... ಮಾತನಾಡಿ',
+    lang_label: 'ಭಾಷೆ:',
+    loc_needed: 'ದೂರ ನೋಡಲು ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಅನುಮತಿಸಿ.',
+    allow_location: 'ಸ್ಥಳ ಅನುಮತಿಸಿ',
+    stat_sources: 'ಇಂದು ಆಹಾರ ಮೂಲಗಳು',
+    stat_nearest: 'ಹತ್ತಿರದ ಕೇಂದ್ರ',
+    stat_open: 'ಈಗ ತೆರೆದಿದೆ',
+    stat_free: 'ಉಚಿತ ಊಟ',
+    nearby_title: 'ಸಮೀಪದ ಆಹಾರ ಕೇಂದ್ರಗಳು',
+    calculating: 'ದೂರ ಲೆಕ್ಕಿಸುತ್ತಿದ್ದೇವೆ...',
+    today: 'ಇಂದು',
+    get_directions: 'ದಿಕ್ಕು ತೋರಿಸಿ',
+    no_listings: 'ಇಂದು ಆಹಾರ ಪಟ್ಟಿಗಳಿಲ್ಲ. ನಂತರ ಪರಿಶೀಲಿಸಿ!',
+    distance: 'ದೂರ',
+    walk_time: 'ನಡಿಗೆ ಸಮಯ',
+    drive_time: 'ಚಾಲನೆ ಸಮಯ',
+    loading_map: 'ನಕ್ಷೆ ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
+    open_gmaps: 'Google Maps ನಲ್ಲಿ ತೆರೆಯಿರಿ',
+    walking_route: 'ನಡಿಗೆ ಮಾರ್ಗ',
+    free_meal: 'ಉಚಿತ ಊಟ',
+    discount: 'ರಿಯಾಯಿತಿ',
+    ration: 'ಪಡಿತರ',
+    cooked_food: 'ಬೇಯಿಸಿದ ಆಹಾರ',
+    new_food_toast: 'ಹೊಸ ಆಹಾರ ಪೋಸ್ಟ್ ಮಾಡಲಾಗಿದೆ',
+    live_connected: 'ಲೈವ್ ಫೀಡ್ ಸಂಪರ್ಕಗೊಂಡಿದೆ',
+  }
+};
+
+// ── Current state ──
+let currentLang     = 'en';
+let currentLangVoice = 'en-IN';
+let userLat = null, userLng = null;
+let currentDestAddress = '';
+let currentDestTitle   = '';
+let currentDestNgo     = '';
+let currentDestType    = '';
+
+// ══════════════════════════════════════════════════════════════
+//  LANGUAGE SWITCHER
+//  Swaps every [data-t] element and [data-t-placeholder] at once
+// ══════════════════════════════════════════════════════════════
+const voiceLangMap = {en:'en-IN', ta:'ta-IN', hi:'hi-IN', te:'te-IN', kn:'kn-IN'};
+
+function setLang(code, btn) {
+  currentLang      = code;
+  currentLangVoice = voiceLangMap[code] || 'en-IN';
+  const T = TRANSLATIONS[code] || TRANSLATIONS.en;
+
+  // Swap all text elements
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.getAttribute('data-t');
+    if (T[key]) el.textContent = T[key];
+  });
+
+  // Swap all placeholders
+  document.querySelectorAll('[data-t-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-t-placeholder');
+    if (T[key]) el.placeholder = T[key];
+  });
+
+  // Swap language button active state
+  document.querySelectorAll('.lang-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Recalculate distances in new language if we have location
+  if (userLat) recalcAllDistances();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GEOLOCATION
+//  Gets user's GPS position → calculates distance to each card
+// ══════════════════════════════════════════════════════════════
+function getLocation() {
+  if (!navigator.geolocation) {
+    showToast('Location not supported in this browser');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      document.getElementById('locBanner').classList.remove('show');
+      recalcAllDistances();
+    },
+    () => {
+      showToast('⚠️ Could not get location. Enable GPS and try again.');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+// Called once we have GPS — calculates distance for every food card
+function recalcAllDistances() {
+  const T = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  const cards = document.querySelectorAll('.food-card[data-address]');
+  let nearest = Infinity;
+
+  cards.forEach(card => {
+    const addr = card.getAttribute('data-address');
+    const id   = card.id.replace('card-', '');
+    geocodeAddress(addr, (lat, lng) => {
+      if (!lat) return;
+      const dist = haversineKm(userLat, userLng, lat, lng);
+      const badge = document.getElementById('dist-' + id);
+      if (badge) {
+        badge.classList.remove('loading');
+        badge.innerHTML = `📍 ${dist < 1 ? Math.round(dist*1000)+'m' : dist.toFixed(1)+'km'} ${T.distance ? 'away' : 'away'}`;
+      }
+      if (dist < nearest) {
+        nearest = dist;
+        document.getElementById('statDist').textContent =
+          dist < 1 ? Math.round(dist*1000)+'m' : dist.toFixed(1)+'km';
+      }
+    });
+  });
+}
+
+// Geocode an address string to lat/lng using Nominatim (free, no API key)
+const geocodeCache = {};
+function geocodeAddress(address, callback) {
+  if (geocodeCache[address]) { callback(...geocodeCache[address]); return; }
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+  fetch(url, { headers: { 'Accept-Language': 'en' } })
+    .then(r => r.json())
+    .then(data => {
+      if (data && data[0]) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        geocodeCache[address] = [lat, lng];
+        callback(lat, lng);
+      } else {
+        callback(null, null);
+      }
+    })
+    .catch(() => callback(null, null));
+}
+
+// Haversine formula — straight-line distance between two GPS coords
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) *
+            Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Walking speed ~5km/h, driving ~30km/h in city
+function estimateTimes(km) {
+  const walkMin  = Math.round(km / 5 * 60);
+  const driveMin = Math.round(km / 30 * 60);
+  const fmt = m => m < 60 ? `${m}m` : `${Math.floor(m/60)}h ${m%60}m`;
+  return { walk: fmt(walkMin), drive: fmt(driveMin) };
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DIRECTIONS MODAL
+//  Opens when user clicks "Get Directions" on any food card
+// ══════════════════════════════════════════════════════════════
+const emojiMap = {free_meal:'🍛', discount:'🏪', ration:'🌾', cooked_food:'🥘'};
+
+function openDirections(id, address, title, ngo, foodType) {
+  currentDestAddress = address;
+  currentDestTitle   = title;
+  currentDestNgo     = ngo;
+  currentDestType    = foodType;
+
+  // Set modal header
+  document.getElementById('dirModalIcon').textContent  = emojiMap[foodType] || '🍱';
+  document.getElementById('dirModalTitle').textContent = title;
+  document.getElementById('dirModalNgo').textContent   = ngo;
+  document.getElementById('dirModalAddr').textContent  = '📍 ' + address;
+
+  // Reset distance fields
+  document.getElementById('modalDist').textContent  = '—';
+  document.getElementById('modalEta').textContent   = '—';
+  document.getElementById('modalDrive').textContent = '—';
+
+  // Show modal
+  document.getElementById('dirModal').classList.add('open');
+
+  // Load embedded map (OpenStreetMap via iframe)
+  loadMapEmbed(address);
+
+  // Calculate distance if we have GPS
+  if (userLat && userLng) {
+    geocodeAddress(address, (lat, lng) => {
+      if (!lat) {
+        document.getElementById('modalDist').textContent = '?';
+        return;
+      }
+      const dist  = haversineKm(userLat, userLng, lat, lng);
+      const times = estimateTimes(dist);
+      document.getElementById('modalDist').textContent  = dist < 1 ? Math.round(dist*1000)+'m' : dist.toFixed(1)+' km';
+      document.getElementById('modalEta').textContent   = times.walk;
+      document.getElementById('modalDrive').textContent = times.drive;
+    });
+  } else {
+    // Ask for location if we don't have it yet
+    getLocation();
+  }
+}
+
+function loadMapEmbed(address) {
+  const frame   = document.getElementById('mapFrame');
+  const loading = document.getElementById('mapLoading');
+  frame.style.display = 'none';
+  loading.style.display = 'flex';
+
+  // Build OpenStreetMap embed URL
+  const query = encodeURIComponent(address);
+  const src   = `https://www.openstreetmap.org/export/embed.html?bbox=&layer=mapnik&marker=&query=${query}`;
+
+  // Use a search-based URL for better results
+  frame.src = `https://maps.google.com/maps?q=${query}&output=embed&z=15`;
+
+  frame.onload = () => {
+    loading.style.display = 'none';
+    frame.style.display   = 'block';
+  };
+
+  // Fallback after 5s
+  setTimeout(() => {
+    loading.style.display = 'none';
+    frame.style.display   = 'block';
+  }, 5000);
+}
+
+// Open Google Maps with DRIVING directions from current location
+function openGoogleMaps() {
+  const dest = encodeURIComponent(currentDestAddress);
+  let url;
+  if (userLat && userLng) {
+    // From current GPS location to destination — driving
+    url = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${dest}&travelmode=driving`;
+  } else {
+    // No GPS — just search the address
+    url = `https://www.google.com/maps/search/?api=1&query=${dest}`;
+  }
+  window.open(url, '_blank');
+}
+
+// Open Google Maps with WALKING directions
+function openGoogleMapsWalk() {
+  const dest = encodeURIComponent(currentDestAddress);
+  let url;
+  if (userLat && userLng) {
+    url = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${dest}&travelmode=walking`;
+  } else {
+    url = `https://www.google.com/maps/search/?api=1&query=${dest}`;
+  }
+  window.open(url, '_blank');
+}
+
+function closeDirections() {
+  document.getElementById('dirModal').classList.remove('open');
+  document.getElementById('mapFrame').src = '';
+}
+function closeDirModalOutside(e) {
+  if (e.target.id === 'dirModal') closeDirections();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  REAL-TIME SSE
+// ══════════════════════════════════════════════════════════════
+const evtSource = new EventSource('/stream');
+
+evtSource.addEventListener('connected', () => {
+  const T = TRANSLATIONS[currentLang];
+  showToast('🟢 ' + T.live_connected);
+});
+
+evtSource.addEventListener('new_food', (e) => {
+  const d = JSON.parse(e.data);
+  const T = TRANSLATIONS[currentLang];
+
+  // Show live alert
+  document.getElementById('liveAlertTitle').textContent = `🆕 ${d.title}`;
+  document.getElementById('liveAlertDesc').textContent  = `${d.ngo_name} · ${d.address}`;
+  const alertEl = document.getElementById('liveAlert');
+  alertEl.classList.add('show');
+  setTimeout(() => alertEl.classList.remove('show'), 6000);
+
+  // Remove empty state
+  const empty = document.getElementById('emptyCard');
+  if (empty) empty.remove();
+
+  // Inject new food card
+  const grid = document.getElementById('foodGrid');
+  const card = document.createElement('div');
+  card.className = 'food-card new-card';
+  card.id = 'card-' + d.id;
+  card.setAttribute('data-address', d.address);
+  card.setAttribute('data-title', d.title);
+  card.setAttribute('data-ngo', d.ngo_name);
+  card.setAttribute('data-type', d.food_type);
+  card.innerHTML = `
+    <div class="food-card-top">
+      <div class="food-type-icon type-${d.food_type}">${emojiMap[d.food_type]||'🍱'}</div>
+      <div class="food-card-info">
+        <h3>${d.title}</h3>
+        <div class="ngo-name">${d.ngo_name}</div>
+      </div>
+    </div>
+    <span class="food-badge badge-${d.food_type}">${T[d.food_type]||d.food_type}</span>
+    <div class="distance-badge loading" id="dist-${d.id}">📍 ${T.calculating}</div>
+    <div class="food-meta">
+      <div class="food-meta-item">🕐 ${d.from_time} – ${d.to_time}</div>
+      <div class="food-meta-item">📍 ${d.address.substring(0,30)}</div>
+      <div class="food-meta-item">🍱 ${d.quantity}</div>
+      <div class="food-meta-item">📅 ${T.today}</div>
+    </div>
+    <div class="food-card-actions">
+      <button class="btn-directions" onclick="openDirections('${d.id}','${d.address}','${d.title}','${d.ngo_name}','${d.food_type}')">
+        📍 ${T.get_directions}
+      </button>
+      <button class="btn-save">🔖</button>
+    </div>`;
+  grid.prepend(card);
+
+  // Update stats
+  document.getElementById('statCount').textContent = parseInt(document.getElementById('statCount').textContent||0)+1;
+  document.getElementById('statOpen').textContent  = parseInt(document.getElementById('statOpen').textContent||0)+1;
+
+  // Calculate distance for new card
+  if (userLat) {
+    geocodeAddress(d.address, (lat, lng) => {
+      if (!lat) return;
+      const dist = haversineKm(userLat, userLng, lat, lng);
+      const badge = document.getElementById('dist-' + d.id);
+      if (badge) {
+        badge.classList.remove('loading');
+        badge.innerHTML = `📍 ${dist < 1 ? Math.round(dist*1000)+'m' : dist.toFixed(1)+'km'} away`;
+      }
+    });
+  }
+
+  // Speak it
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance(`${T.new_food_toast}: ${d.title}`);
+    msg.lang = currentLangVoice;
+    window.speechSynthesis.speak(msg);
+  }
+
+  showToast(`🍛 ${T.new_food_toast}: ${d.title}`);
+});
+
+evtSource.addEventListener('listing_toggled', (e) => {
+  const d = JSON.parse(e.data);
+  const card = document.getElementById('card-' + d.id);
+  if (card) card.style.opacity = d.is_active ? '1' : '0.4';
+});
+
+// ══════════════════════════════════════════════════════════════
+//  VOICE SEARCH  +  AI INTERPRETATION (Ollama gemma:2b)
+//
+//  FLOW:
+//    User speaks → browser hears text → sent to /ai/interpret
+//    → Ollama (gemma:2b) converts to keywords → filter cards
+//
+//  Example: "List me the nearby food sources" → "" → show ALL
+//           "I want free food"               → "free meal" → filter
+//           "where is biryani"               → "biryani"  → filter
+// ══════════════════════════════════════════════════════════════
+function startVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Voice search needs Chrome browser.');
+    return;
+  }
+  const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SR();
+  rec.lang            = currentLangVoice;
+  rec.interimResults  = false;
+  rec.maxAlternatives = 1;
+
+  const btn    = document.getElementById('voiceBtn');
+  const status = document.getElementById('voiceStatus');
+  const input  = document.getElementById('searchInput');
+
+  btn.classList.add('listening');
+  btn.textContent = '⏹️';
+  status.classList.add('show');
+  document.getElementById('voiceStatusText').textContent =
+    TRANSLATIONS[currentLang].listening || 'Listening... speak now';
+
+  rec.start();
+
+  rec.onresult = async (ev) => {
+    const spoken = ev.results[0][0].transcript;
+    input.value  = spoken;   // show what was heard immediately
+
+    // ── Show "Processing..." while AI interprets ──
+    document.getElementById('voiceStatusText').textContent = '🤖 AI is interpreting...';
+    status.classList.add('show');
+
+    try {
+      // ── Send to Flask /ai/interpret → Ollama gemma:2b ──
+      const res  = await fetch('/ai/interpret', {
+        method:  'POST',
+        headers: {'Content-Type': 'application/json'},
+        body:    JSON.stringify({ query: spoken })
+      });
+      const data = await res.json();
+      const keywords = (data.keywords || '').trim();
+
+      // Show keywords in search box so user can see what AI understood
+      if (keywords && keywords !== spoken) {
+        input.value = keywords;
+        showToast(`🤖 Searching for: "${keywords}"`);
+      } else if (!keywords) {
+        input.value = '';
+        showToast('🍽️ Showing all food sources');
+      }
+
+      // ── Filter cards using AI-extracted keywords ──
+      filterFoodCards(keywords);
+
+    } catch (err) {
+      // If AI/server fails → fall back to direct text search
+      console.warn('AI interpret failed, using direct search:', err);
+      filterFoodCards(spoken);
+    }
+  };
+
+  rec.onend = () => {
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+    status.classList.remove('show');
+  };
+
+  rec.onerror = () => {
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+    status.classList.remove('show');
+  };
+}
+
+// ── Manual text search (typing in search box) ──
+document.getElementById('searchInput').addEventListener('input', function(){
+  filterFoodCards(this.value);
+});
+
+// ── FILTER CARDS ──
+// query = '' → show ALL cards  (this is the key fix!)
+// query = 'biryani' → show only cards containing 'biryani'
+function filterFoodCards(q) {
+  const query = (q || '').toLowerCase().trim();
+  let visibleCount = 0;
+
+  document.querySelectorAll('.food-card').forEach(card => {
+    const matches = !query || card.innerText.toLowerCase().includes(query);
+    card.style.display = matches ? '' : 'none';
+    if (matches) visibleCount++;
+  });
+
+  // Show empty state if nothing matches
+  let noResult = document.getElementById('noResultMsg');
+  if (visibleCount === 0 && query) {
+    if (!noResult) {
+      noResult = document.createElement('div');
+      noResult.id = 'noResultMsg';
+      noResult.style.cssText = 'grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);';
+      noResult.innerHTML = `<div style="font-size:2rem;margin-bottom:10px;">🔍</div>
+        <p>No results for "<strong>${query}</strong>". Try a different word.</p>`;
+      document.getElementById('foodGrid').appendChild(noResult);
+    }
+  } else if (noResult) {
+    noResult.remove();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT — runs on page load
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Try to get location silently — if it fails show the banner
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        recalcAllDistances();
+      },
+      () => {
+        // Show banner asking permission
+        document.getElementById('locBanner').classList.add('show');
+        // Set all distance badges to "tap to enable"
+        document.querySelectorAll('.distance-badge').forEach(b => {
+          b.classList.remove('loading');
+          b.innerHTML = '📍 <span style="cursor:pointer" onclick="getLocation()">Tap to see distance</span>';
+        });
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  }
+});
+</script>
+
+</body>
+</html>

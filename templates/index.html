@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodLink – Food For Everyone</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --saffron: #E8651A;
+    --deep: #1A1208;
+    --warm: #F5EDD6;
+    --green: #2D6A4F;
+    --gold: #D4A017;
+    --text-muted: #6B5B3E;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--warm);
+    color: var(--deep);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grain overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(245,237,214,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(232,101,26,0.12);
+  }
+
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--saffron);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--deep); }
+
+  .nav-badge {
+    background: var(--saffron);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 4px 12px;
+    border-radius: 100px;
+    text-transform: uppercase;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 24px 80px;
+    text-align: center;
+    z-index: 1;
+  }
+
+  /* decorative blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.25;
+    pointer-events: none;
+  }
+  .blob-1 { width: 500px; height: 500px; background: var(--saffron); top: -100px; left: -150px; }
+  .blob-2 { width: 400px; height: 400px; background: var(--green); bottom: 0; right: -100px; }
+  .blob-3 { width: 300px; height: 300px; background: var(--gold); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--saffron);
+    background: rgba(232,101,26,0.1);
+    border: 1px solid rgba(232,101,26,0.25);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .eyebrow::before { content: '●'; font-size: 0.5rem; }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -2px;
+    color: var(--deep);
+    max-width: 900px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--saffron);
+  }
+
+  .subtitle {
+    margin-top: 24px;
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    max-width: 560px;
+    line-height: 1.7;
+    font-weight: 300;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  /* ── 3 Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 64px;
+    max-width: 960px;
+    width: 100%;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 32px;
+    text-align: left;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    box-shadow: 0 4px 24px rgba(26,18,8,0.06);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(26,18,8,0.14);
+  }
+
+  /* Card colors */
+  .card-seeker { border-color: rgba(232,101,26,0.15); }
+  .card-seeker:hover { border-color: var(--saffron); }
+  .card-seeker .card-icon { background: rgba(232,101,26,0.1); color: var(--saffron); }
+  .card-seeker .card-btn { background: var(--saffron); }
+
+  .card-ngo { border-color: rgba(45,106,79,0.15); }
+  .card-ngo:hover { border-color: var(--green); }
+  .card-ngo .card-icon { background: rgba(45,106,79,0.1); color: var(--green); }
+  .card-ngo .card-btn { background: var(--green); }
+
+  .card-admin { border-color: rgba(212,160,23,0.15); }
+  .card-admin:hover { border-color: var(--gold); }
+  .card-admin .card-icon { background: rgba(212,160,23,0.1); color: var(--gold); }
+  .card-admin .card-btn { background: var(--gold); }
+
+  .card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+
+  .card-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--deep);
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .card-features {
+    list-style: none;
+    margin-bottom: 28px;
+  }
+
+  .card-features li {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-features li::before {
+    content: '✓';
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .card-seeker .card-features li::before { color: var(--saffron); }
+  .card-ngo .card-features li::before { color: var(--green); }
+  .card-admin .card-features li::before { color: var(--gold); }
+
+  .card-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 11px 22px;
+    border-radius: 100px;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .card:hover .card-btn {
+    opacity: 0.92;
+    transform: translateX(2px);
+  }
+
+  .card-btn-arrow { font-size: 1rem; transition: transform 0.2s; }
+  .card:hover .card-btn-arrow { transform: translateX(3px); }
+
+  /* ── Stats bar ── */
+  .stats {
+    margin-top: 60px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--saffron);
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(107,91,62,0.2);
+  }
+
+  /* ── Footer strip ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 32px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(107,91,62,0.15);
+  }
+
+  footer strong { color: var(--saffron); }
+
+  /* ── Language pills ── */
+  .lang-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+
+  .lang-pill {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: white;
+    border: 1px solid rgba(107,91,62,0.2);
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .cards { grid-template-columns: 1fr; gap: 16px; }
+    .stats { gap: 20px; }
+    h1 { letter-spacing: -1px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Food<span>Link</span></div>
+  <div class="nav-badge">🇮🇳 India Food Network</div>
+</nav>
+
+<section class="hero">
+  <!-- Decorative blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  
+
+  <h1>No one should go <em>hungry</em><br>in a crisis.</h1>
+
+ 
+    
+  </p>
+
+  <!-- 3 Main Buttons / Cards -->
+  <div class="cards">
+
+    <!-- Card 1: Food Seekers -->
+    <a href="/seeker/login" class="card card-seeker">
+      <div class="card-icon">🍽️</div>
+      <div class="card-label">For People in Need</div>
+      <div class="card-title">Find My<br>Meal</div>
+      <p class="card-desc">Locate free food, community kitchens, and relief centres near you — in your language.</p>
+      <ul class="card-features">
+        <li>Search food near me</li>
+        <li>Works offline</li>
+        <li>Tamil, Hindi, Telugu & more</li>
+        <li>Voice navigation</li>
+      </ul>
+      <div class="card-btn">I Need Food <span class="card-btn-arrow">→</span></div>
+    </a>
+
+    <!-- Card 2: NGOs -->
+    <a href="/ngo/login" class="card card-ngo">
+      <div class="card-icon">🤝</div>
+      <div class="card-label">For NGOs & Volunteers</div>
+      <div class="card-title">Share<br>Food</div>
+      <p class="card-desc">Post meal timings, update food availability, and reach hundreds of people who need you.</p>
+      <ul class="card-features">
+        <li>Post food listings</li>
+        <li>Real-time updates</li>
+        <li>Manage volunteers</li>
+        <li>Track distributions</li>
+      </ul>
+      <div class="card-btn">NGO / Volunteer <span class="card-btn-arrow">→</span></div>
+    </a>
+
+    <!-- Card 3: Admin -->
+    <a href="/admin/login" class="card card-admin">
+      <div class="card-icon">⚙️</div>
+      <div class="card-label">Platform Management</div>
+      <div class="card-title">Admin<br>Control</div>
+      <p class="card-desc">Verify NGOs, monitor food distribution, and manage the platform across all cities.</p>
+      <ul class="card-features">
+        <li>Approve NGO registrations</li>
+        <li>Monitor all listings</li>
+        <li>View analytics</li>
+        <li>Manage platform</li>
+      </ul>
+      <div class="card-btn">Admin Panel <span class="card-btn-arrow">→</span></div>
+    </a>
+
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">50K+</div>
+      <div class="stat-label">Meals Connected</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">200+</div>
+      <div class="stat-label">NGO Partners</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">8</div>
+      <div class="stat-label">Languages</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-num">24/7</div>
+      <div class="stat-label">Available</div>
+    </div>
+  </div>
+
+  <!-- Language pills -->
+  <div class="lang-pills">
+    <span class="lang-pill">தமிழ் Tamil</span>
+    <span class="lang-pill">हिंदी Hindi</span>
+    <span class="lang-pill">తెలుగు Telugu</span>
+    <span class="lang-pill">ಕನ್ನಡ Kannada</span>
+    <span class="lang-pill">മലയാളം Malayalam</span>
+    <span class="lang-pill">বাংলা Bengali</span>
+    <span class="lang-pill">मराठी Marathi</span>
+    <span class="lang-pill">English</span>
+  </div>
+
+</section>
+
+<footer>
+  Built for <strong>India's Daily Wage Workers</strong> · Works offline · Free forever
+</footer>
+
+</body>
+</html>

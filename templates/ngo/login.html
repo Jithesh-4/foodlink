@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodLink – NGO Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --green: #2D6A4F; --deep: #0F1F1A; --warm: #F0F7F4; --muted: #4A7C68; }
+  body {
+    font-family: 'DM Sans', sans-serif; background: var(--deep);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background: radial-gradient(ellipse at 70% 30%, rgba(45,106,79,0.2) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .container { width: 100%; max-width: 480px; animation: fadeUp 0.5s ease; }
+  .tabs {
+    display: flex; background: rgba(255,255,255,0.05); border-radius: 12px;
+    padding: 4px; margin-bottom: 20px; gap: 4px;
+  }
+  .tab {
+    flex: 1; padding: 10px; text-align: center; border-radius: 9px;
+    font-size: 0.88rem; cursor: pointer; color: rgba(255,255,255,0.4);
+    transition: all 0.2s; border: none; background: transparent;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab.active { background: var(--green); color: white; font-weight: 500; }
+  .box {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(45,106,79,0.25);
+    border-radius: 28px; padding: 48px; backdrop-filter: blur(20px);
+  }
+  .back { display:inline-flex; align-items:center; gap:6px; color:rgba(255,255,255,0.35);
+    font-size:0.82rem; text-decoration:none; margin-bottom:28px; transition:color 0.2s; }
+  .back:hover { color: #6ee7b7; }
+  .icon-wrap { width:60px; height:60px; border-radius:18px;
+    background:rgba(45,106,79,0.2); border:1px solid rgba(45,106,79,0.3);
+    display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin-bottom:20px; }
+  h1 { font-family:'Fraunces',serif; font-size:1.9rem; font-weight:900; color:white; margin-bottom:6px; }
+  p.sub { color:rgba(255,255,255,0.45); font-size:0.88rem; line-height:1.6; margin-bottom:32px; }
+  .field { margin-bottom:14px; }
+  label { display:block; font-size:0.75rem; color:rgba(255,255,255,0.45);
+    letter-spacing:0.08em; text-transform:uppercase; margin-bottom:7px; }
+  input, select, textarea {
+    width:100%; padding:13px 16px; background:rgba(255,255,255,0.07);
+    border:1px solid rgba(255,255,255,0.1); border-radius:11px; color:white;
+    font-family:'DM Sans',sans-serif; font-size:0.95rem; outline:none;
+    transition:border-color 0.2s, background 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--green); background:rgba(45,106,79,0.1);
+  }
+  select option { background:#0a1f16; }
+  textarea { resize: vertical; min-height: 80px; }
+  .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .btn {
+    width:100%; padding:14px; background:var(--green); color:white;
+    border:none; border-radius:11px; font-family:'DM Sans',sans-serif;
+    font-size:1rem; font-weight:500; cursor:pointer; margin-top:8px;
+    transition:opacity 0.2s, transform 0.15s;
+  }
+  .btn:hover { opacity:0.88; transform:translateY(-1px); }
+  .flash { background:rgba(45,106,79,0.15); border:1px solid rgba(45,106,79,0.3);
+    border-radius:10px; padding:12px 16px; color:#6ee7b7; font-size:0.85rem; margin-bottom:16px; }
+  .pending-note {
+    margin-top:16px; padding:12px 16px; background:rgba(212,160,23,0.1);
+    border:1px solid rgba(212,160,23,0.25); border-radius:10px;
+    color:#fcd34d; font-size:0.8rem; text-align:center; line-height:1.5;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
+  .form-section { display:none; }
+  .form-section.active { display:block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="/" class="back">← Back to Home</a>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login', this)">Login</button>
+    <button class="tab" onclick="switchTab('register', this)">Register NGO</button>
+  </div>
+  <div class="box">
+    <div class="icon-wrap">🤝</div>
+
+    <!-- LOGIN FORM -->
+    <div class="form-section active" id="loginSection">
+      <h1>NGO Login</h1>
+      <p class="sub">Access your dashboard to post food availability and manage distributions.</p>
+      {% if error %}<div class="flash">{{ error }}</div>{% endif %}
+      <form method="POST" action="/ngo/login">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="your@ngo.org" required>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn">Login to Dashboard →</button>
+      </form>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div class="form-section" id="registerSection">
+      <h1>Register NGO</h1>
+      <p class="sub">Join FoodLink to connect your food programs with people who need them.</p>
+      <form method="POST" action="/ngo/register">
+        <div class="field">
+          <label>Organization Name</label>
+          <input type="text" name="name" placeholder="e.g. Akshaya Patra Foundation" required>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="contact@ngo.org" required>
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="tel" name="phone" placeholder="9876543210" required>
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>City</label>
+            <input type="text" name="city" placeholder="Chennai" required>
+          </div>
+          <div class="field">
+            <label>State</label>
+            <select name="state">
+              <option>Tamil Nadu</option>
+              <option>Karnataka</option>
+              <option>Andhra Pradesh</option>
+              <option>Telangana</option>
+              <option>Kerala</option>
+              <option>Maharashtra</option>
+              <option>Delhi</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Address / Area</label>
+          <textarea name="address" placeholder="Full address of your organization..."></textarea>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Create a strong password" required>
+        </div>
+        <button type="submit" class="btn">Submit for Verification →</button>
+      </form>
+      <div class="pending-note">
+        ⏳ After registration, an admin will verify your NGO within 24 hours before you can post food listings.
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tab + 'Section').classList.add('active');
+}
+</script>
+</body>
+</html>

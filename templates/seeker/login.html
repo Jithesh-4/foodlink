@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodLink – Find My Meal</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --saffron: #E8651A; --deep: #1A1208; --warm: #F5EDD6;
+    --muted: #6B5B3E; --white: #FFFFFF;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--deep);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(232,101,26,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(232,101,26,0.08) 0%, transparent 50%);
+    pointer-events:none;
+  }
+  .box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(232,101,26,0.2);
+    border-radius: 28px;
+    padding: 56px 48px;
+    width: 100%; max-width: 440px;
+    backdrop-filter: blur(20px);
+    animation: fadeUp 0.5s ease both;
+  }
+  .back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: rgba(255,255,255,0.4); font-size: 0.82rem;
+    text-decoration: none; margin-bottom: 32px;
+    transition: color 0.2s;
+  }
+  .back:hover { color: var(--saffron); }
+  .icon-wrap {
+    width: 64px; height: 64px; border-radius: 20px;
+    background: rgba(232,101,26,0.15);
+    border: 1px solid rgba(232,101,26,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin-bottom: 24px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem; font-weight: 900;
+    color: white; margin-bottom: 8px;
+  }
+  p.sub { color: rgba(255,255,255,0.5); font-size: 0.9rem; line-height: 1.6; margin-bottom: 36px; }
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 0.78rem; color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  input, select {
+    width: 100%; padding: 14px 18px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; color: white;
+    font-family: 'DM Sans', sans-serif; font-size: 1rem;
+    transition: border-color 0.2s, background 0.2s;
+    outline: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--saffron);
+    background: rgba(232,101,26,0.08);
+  }
+  select option { background: #2a1a0a; }
+  .btn {
+    width: 100%; padding: 15px;
+    background: var(--saffron); color: white;
+    border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 500;
+    cursor: pointer; margin-top: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .note {
+    text-align: center; margin-top: 20px;
+    font-size: 0.8rem; color: rgba(255,255,255,0.3);
+  }
+  .flash {
+    background: rgba(232,101,26,0.15); border: 1px solid rgba(232,101,26,0.3);
+    border-radius: 10px; padding: 12px 16px;
+    color: #ffb085; font-size: 0.85rem; margin-bottom: 16px;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="box">
+  <a href="/" class="back">← Back to Home</a>
+  <div class="icon-wrap">🍽️</div>
+  <h1>Find My Meal</h1>
+  <p class="sub">Enter your phone number to find free food and meals near you. No password needed.</p>
+
+  {% if error %}
+  <div class="flash">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="/seeker/login">
+    <div class="field">
+      <label>Your Phone Number</label>
+      <input type="tel" name="phone" placeholder="e.g. 9876543210" required maxlength="10">
+    </div>
+    <div class="field">
+      <label>Your City</label>
+      <input type="text" name="city" placeholder="e.g. Chennai, Coimbatore">
+    </div>
+    <div class="field">
+      <label>Preferred Language</label>
+      <select name="language">
+        <option value="en">English</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+        <option value="hi">हिंदी (Hindi)</option>
+        <option value="te">తెలుగు (Telugu)</option>
+        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+        <option value="ml">മലയാളം (Malayalam)</option>
+      </select>
+    </div>
+    <button type="submit" class="btn">Find Food Near Me →</button>
+  </form>
+  <p class="note">We only use your number to show nearby food. No OTP, no spam.</p>
+</div>
+</body>
+</html>
